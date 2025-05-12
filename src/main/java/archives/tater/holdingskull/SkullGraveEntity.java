@@ -88,6 +88,10 @@ public class SkullGraveEntity extends Entity implements NamedScreenHandlerFactor
 
     @Override
     public void tick() {
+        if (getY() < getWorld().getBottomY()) {
+            setPosition(getX(), getWorld().getBottomY(), getZ());
+            setNoGravity(true);
+        }
         super.tick();
         tickPortalTeleportation();
         if (isTouchingWater() && getFluidHeight(FluidTags.WATER) > 0.1F) {
