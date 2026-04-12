@@ -103,7 +103,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
 
         updateFluidInteraction();
 
-        if (inventory.isEmpty()) {
+        if (!level().isClientSide() && inventory.isEmpty()) {
             ticksEmpty++;
             if (ticksEmpty > MAX_EMPTY_TICKS)
                 discard();
