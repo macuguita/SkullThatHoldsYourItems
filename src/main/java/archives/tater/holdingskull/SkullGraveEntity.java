@@ -5,7 +5,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
@@ -51,7 +50,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
     }
 
     public void setOwner(@Nullable Player owner) {
-        inventory.items.clear();
+        inventory.getItems().clear();
         if (owner == null) {
             this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
             setCustomName(null);
@@ -60,7 +59,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner).map(EntityReference::of));
         var playerInventory = owner.getInventory();
         for (int i = 0; i < playerInventory.getContainerSize(); i++) {
-            inventory.items.set(i, playerInventory.getItem(i));
+            inventory.getItems().set(i, playerInventory.getItem(i));
             playerInventory.setItem(i, ItemStack.EMPTY);
         }
         // TODO plugins
@@ -85,7 +84,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
     @Override
     public void tick() {
         if (getY() < level().getMinY()) {
-            setPos(getX(), level().getMaxY(), getZ());
+            setPos(getX(), level().getMinY(), getZ());
             setNoGravity(true);
         }
         super.tick();
@@ -114,8 +113,6 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
     @Override
     public void playerTouch(Player player) {
         if (!isOwner(player)) return;
-
-        player.makeSound(SoundEvents.ITEM_PICKUP);
 
         if (level().isClientSide()) return;
 
@@ -214,7 +211,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
 
         ticksEmpty = input.getInt(TICKS_EMPTY_NBT).orElseThrow();
 
-        ContainerHelper.loadAllItems(input, inventory.items);
+        ContainerHelper.loadAllItems(input, inventory.getItems());
     }
 
     @Override
@@ -222,6 +219,6 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         EntityReference<LivingEntity> owner = this.getOwnerReference();
         EntityReference.store(owner, output, "Owner");
         output.putInt(TICKS_EMPTY_NBT, ticksEmpty);
-        ContainerHelper.saveAllItems(output, inventory.items);
+        ContainerHelper.saveAllItems(output, inventory.getItems());
     }
 }

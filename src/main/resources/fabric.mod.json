@@ -3,13 +3,15 @@
   "id": "holdingskull",
   "version": "${version}",
   "name": "Skull that holds your items",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "Skull that holds your items on death",
   "authors": [
-    "Me!"
+    "ThePotatoArchivist",
+    "macuguita"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/macuguita/SkullThatHoldsYourItems",
+    "sources": "https://github.com/macuguita/SkullThatHoldsYourItems",
+    "issues": "https://github.com/macuguita/SkullThatHoldsYourItems/issues"
   },
   "license": "CC0-1.0",
   "icon": "assets/holdingskull/icon.png",
@@ -19,7 +21,7 @@
       "archives.tater.holdingskull.HoldingSkull"
     ],
     "client": [
-		"archives.tater.holdingskull.client.HoldingSkullClient"
+      "archives.tater.holdingskull.client.HoldingSkullClient"
     ]
   },
   "mixins": [
@@ -34,8 +36,5 @@
     "minecraft": "~26.1-",
     "java": ">=25",
     "fabric-api": "*"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }

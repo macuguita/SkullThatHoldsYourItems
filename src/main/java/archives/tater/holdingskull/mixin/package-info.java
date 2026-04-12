@@ -1,4 +1,4 @@
 @NullMarked
-package archives.tater.holdingskull.client.mixin;
+package archives.tater.holdingskull.mixin;
 
 import org.jspecify.annotations.NullMarked;

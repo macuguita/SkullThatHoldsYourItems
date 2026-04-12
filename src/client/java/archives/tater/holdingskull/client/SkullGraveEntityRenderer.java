@@ -5,17 +5,12 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.object.skull.DragonHeadModel;
-import net.minecraft.client.model.object.skull.PiglinHeadModel;
-import net.minecraft.client.model.object.skull.SkullModel;
 import net.minecraft.client.model.object.skull.SkullModelBase;
 import net.minecraft.client.renderer.PlayerSkinRenderCache;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -26,7 +21,6 @@ import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.SkullBlock;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -44,29 +38,12 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
     });
     private final PlayerSkinRenderCache playerSkinRenderCache;
 
-    @Nullable
-    public static SkullModelBase createModel(final EntityModelSet modelSet, final SkullBlock.Type type) {
-        if (type instanceof SkullBlock.Types vanillaType) {
-            return (switch (vanillaType) {
-                case SKELETON -> new SkullModel(modelSet.bakeLayer(ModelLayers.SKELETON_SKULL));
-                case WITHER_SKELETON -> new SkullModel(modelSet.bakeLayer(ModelLayers.WITHER_SKELETON_SKULL));
-                case PLAYER -> new SkullModel(modelSet.bakeLayer(ModelLayers.PLAYER_HEAD));
-                case ZOMBIE -> new SkullModel(modelSet.bakeLayer(ModelLayers.ZOMBIE_HEAD));
-                case CREEPER -> new SkullModel(modelSet.bakeLayer(ModelLayers.CREEPER_HEAD));
-                case DRAGON -> new DragonHeadModel(modelSet.bakeLayer(ModelLayers.DRAGON_SKULL));
-                case PIGLIN -> new PiglinHeadModel(modelSet.bakeLayer(ModelLayers.PIGLIN_HEAD));
-            });
-        } else {
-            return null;
-        }
-    }
-
     @SuppressWarnings("DataFlowIssue")
     protected SkullGraveEntityRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
         playerSkinRenderCache = ctx.getPlayerSkinRenderCache();
         EntityModelSet modelSet = ctx.getModelSet();
-        this.modelByType = Util.memoize(type -> createModel(modelSet, type));
+        this.modelByType = Util.memoize(type -> SkullBlockRenderer.createModel(modelSet, type));
         this.shadowRadius = 0.35F;
         this.shadowStrength = 0.75F;
     }
