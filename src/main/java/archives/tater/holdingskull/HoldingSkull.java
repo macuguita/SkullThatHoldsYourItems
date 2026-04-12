@@ -1,11 +1,12 @@
 package archives.tater.holdingskull;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ public class HoldingSkull implements ModInitializer {
 	public static final String MOD_ID = "holdingskull";
 
 	public static Identifier id(String path) {
-		return Identifier.of(MOD_ID, path);
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
 	// This logger is used to write text to the console and the log file.
@@ -22,14 +23,14 @@ public class HoldingSkull implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	public static final EntityType<SkullGraveEntity> SKULL_GRAVE = Registry.register(
-			Registries.ENTITY_TYPE,
+			BuiltInRegistries.ENTITY_TYPE,
 			id("skull_grave"),
-			EntityType.Builder.<SkullGraveEntity>create(SkullGraveEntity::new, SpawnGroup.MISC)
-					.makeFireImmune()
-					.dimensions(0.5F, 0.5F)
+			EntityType.Builder.<SkullGraveEntity>of(SkullGraveEntity::new, MobCategory.MISC)
+					.fireImmune()
+					.sized(0.5F, 0.5F)
 					.eyeHeight(0.2125F)
-					.maxTrackingRange(6)
-					.build()
+					.clientTrackingRange(6)
+					.build(ResourceKey.create(BuiltInRegistries.ENTITY_TYPE.key(), id("skull_grave")))
 	);
 
 	@Override

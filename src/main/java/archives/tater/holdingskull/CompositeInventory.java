@@ -1,21 +1,21 @@
 package archives.tater.holdingskull;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 
-public class CompositeInventory implements Inventory {
-    private final Inventory[] inventories;
+public class CompositeInventory implements Container {
+    private final Container[] inventories;
 
-    public CompositeInventory(Inventory... inventories) {
+    public CompositeInventory(Container... inventories) {
         this.inventories = inventories;
     }
 
     @Override
-    public int size() {
+    public int getContainerSize() {
         var size = 0;
         for (var inventory : inventories)
-            size += inventory.size();
+            size += inventory.getContainerSize();
         return size;
     }
 
@@ -27,52 +27,52 @@ public class CompositeInventory implements Inventory {
     }
 
     @Override
-    public ItemStack getStack(int slot) {
+    public ItemStack getItem(int slot) {
         if (slot < 0) return ItemStack.EMPTY;
         var slotsLeft = slot;
         for (var inventory : inventories) {
-            var size = inventory.size();
+            var size = inventory.getContainerSize();
             if (slotsLeft < size)
-                return inventory.getStack(slotsLeft);
+                return inventory.getItem(slotsLeft);
             slotsLeft -= size;
         }
         return ItemStack.EMPTY;
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         if (slot < 0) return ItemStack.EMPTY;
         var slotsLeft = slot;
         for (var inventory : inventories) {
-            var size = inventory.size();
+            var size = inventory.getContainerSize();
             if (slotsLeft < size)
-                return inventory.removeStack(slotsLeft, amount);
+                return inventory.removeItem(slotsLeft, amount);
             slotsLeft -= size;
         }
         return ItemStack.EMPTY;
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         if (slot < 0) return ItemStack.EMPTY;
         var slotsLeft = slot;
         for (var inventory : inventories) {
-            var size = inventory.size();
+            var size = inventory.getContainerSize();
             if (slotsLeft < size)
-                return inventory.removeStack(slotsLeft);
+                return inventory.removeItemNoUpdate(slotsLeft);
             slotsLeft -= size;
         }
         return ItemStack.EMPTY;
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         var slotsLeft = slot;
         if (slotsLeft < 0) return;
         for (var inventory : inventories) {
-            var size = inventory.size();
+            var size = inventory.getContainerSize();
             if (slotsLeft < size) {
-                inventory.setStack(slotsLeft, stack);
+                inventory.setItem(slotsLeft, stack);
                 return;
             }
             slotsLeft -= size;
@@ -80,21 +80,21 @@ public class CompositeInventory implements Inventory {
     }
 
     @Override
-    public void markDirty() {
+    public void setChanged() {
         for (var inventory : inventories)
-            inventory.markDirty();
+            inventory.setChanged();
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         for (var inventory : inventories)
-            if (!inventory.canPlayerUse(player)) return false;
+            if (!inventory.stillValid(player)) return false;
         return true;
     }
 
     @Override
-    public void clear() {
+    public void clearContent() {
         for (var inventory : inventories)
-            inventory.clear();
+            inventory.clearContent();
     }
 }

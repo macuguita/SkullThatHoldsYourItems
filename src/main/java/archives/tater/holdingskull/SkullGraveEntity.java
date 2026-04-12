@@ -1,38 +1,42 @@
 package archives.tater.holdingskull;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MovementType;
-import net.minecraft.entity.Ownable;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.*;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-public class SkullGraveEntity extends Entity implements NamedScreenHandlerFactory, Ownable {
-    private @Nullable PlayerEntity owner = null;
-    private @Nullable UUID ownerUuid = null;
-    private final SimpleInventory inventory = new SimpleInventory(127) {
+public class SkullGraveEntity extends Entity implements MenuProvider, TraceableEntity {
+    private static final UUID EMPTY_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(
+            SkullGraveEntity.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE
+    );
+    private final SimpleContainer inventory = new SimpleContainer(127) {
         @Override
-        public boolean canInsert(ItemStack stack) {
+        public boolean canAddItem(ItemStack stack) {
             return false;
         }
     };
@@ -40,73 +44,69 @@ public class SkullGraveEntity extends Entity implements NamedScreenHandlerFactor
 
     public static final int MAX_EMPTY_TICKS = 20 * 60;
 
-    public SkullGraveEntity(EntityType<? extends SkullGraveEntity> type, World world) {
+    public SkullGraveEntity(EntityType<? extends SkullGraveEntity> type, Level world) {
         super(type, world);
     }
 
-    public SkullGraveEntity(World world, PlayerEntity owner) {
+    public SkullGraveEntity(Level world, Player owner) {
         super(HoldingSkull.SKULL_GRAVE, world);
         setOwner(owner);
-        setPosition(owner.getPos());
+        setPos(owner.position());
     }
 
-    public void setOwner(@Nullable PlayerEntity owner) {
-        inventory.heldStacks.clear();
+    public void setOwner(@Nullable Player owner) {
+        inventory.items.clear();
         if (owner == null) {
-            this.owner = null;
-            ownerUuid = null;
+            this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
             setCustomName(null);
             return;
         }
-        this.owner = owner;
-        ownerUuid = owner.getUuid();
+        this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner).map(EntityReference::of));
         var playerInventory = owner.getInventory();
-        for (int i = 0; i < playerInventory.size(); i++) {
-            inventory.heldStacks.set(i, playerInventory.getStack(i));
-            playerInventory.setStack(i, ItemStack.EMPTY);
+        for (int i = 0; i < playerInventory.getContainerSize(); i++) {
+            inventory.items.set(i, playerInventory.getItem(i));
+            playerInventory.setItem(i, ItemStack.EMPTY);
         }
         // TODO plugins
         setCustomName(owner.getName());
     }
 
     @Nullable
-    @Override
-    public PlayerEntity getOwner() {
-        if (owner != null && !owner.isRemoved()) {
-            return owner;
-        }
-
-        if (ownerUuid == null) return null;
-
-        owner = getWorld().getPlayerByUuid(this.ownerUuid);
-        return owner;
+    public EntityReference<LivingEntity> getOwnerReference() {
+        return this.entityData.get(DATA_OWNERUUID_ID).orElse(null);
     }
 
-    public boolean isOwner(PlayerEntity player) {
-        return player.getUuid().equals(ownerUuid);
+    @Nullable
+    @Override
+    public Player getOwner() {
+        return this.entityData.get(DATA_OWNERUUID_ID).map(EntityReference::getUUID).map(uuid -> level().getPlayerByUUID(uuid)).orElse(null);
+    }
+
+    public boolean isOwner(Player player) {
+        return player.getUUID().equals(this.entityData.get(DATA_OWNERUUID_ID).map(EntityReference::getUUID).orElse(null));
     }
 
     @Override
     public void tick() {
-        if (getY() < getWorld().getBottomY()) {
-            setPosition(getX(), getWorld().getBottomY(), getZ());
+        if (getY() < level().getMinY()) {
+            setPos(getX(), level().getMaxY(), getZ());
             setNoGravity(true);
         }
         super.tick();
-        tickPortalTeleportation();
-        if (isTouchingWater() && getFluidHeight(FluidTags.WATER) > 0.1F) {
+        handlePortal();
+        if (isInWater() && getFluidHeight(FluidTags.WATER) > 0.1F) {
             applyWaterBuoyancy();
         } else if (isInLava() && getFluidHeight(FluidTags.LAVA) > 0.1F) {
             applyLavaBuoyancy();
         } else {
             applyGravity();
         }
-        move(MovementType.SELF, getVelocity());
-        setVelocity(getVelocity().multiply(0.98));
-        if (isOnGround())
-            setVelocity(getVelocity().multiply(0.7, -0.5, 0.7));
+        move(MoverType.SELF, getDeltaMovement());
+        setDeltaMovement(getDeltaMovement().scale(0.98));
+        if (onGround())
+            setDeltaMovement(getDeltaMovement().multiply(0.7, -0.5, 0.7));
 
-        updateWaterState();
+        updateFluidInteraction();
 
         if (inventory.isEmpty()) {
             ticksEmpty++;
@@ -116,110 +116,117 @@ public class SkullGraveEntity extends Entity implements NamedScreenHandlerFactor
     }
 
     @Override
-    public void onPlayerCollision(PlayerEntity player) {
+    public void playerTouch(Player player) {
         if (!isOwner(player)) return;
 
-        player.playSound(SoundEvents.ENTITY_ITEM_PICKUP);
+        player.makeSound(SoundEvents.ITEM_PICKUP);
 
-        if (getWorld().isClient) return;
+        if (level().isClientSide()) return;
 
-        player.sendPickup(this, 1);
+        player.take(this, 1);
 
         var remainingStacks = new ArrayList<ItemStack>();
         var playerInventory = player.getInventory();
-        for (var i = 0; i < inventory.size(); i++) {
-            var stack = inventory.getStack(i);
+        for (var i = 0; i < inventory.getContainerSize(); i++) {
+            var stack = inventory.getItem(i);
 
-            if (i >= playerInventory.size()) {
+            if (i >= playerInventory.getContainerSize()) {
                 remainingStacks.add(stack);
                 continue;
             }
 
             if (!stack.isEmpty()) {
-                var replacedStack = playerInventory.getStack(i);
-                playerInventory.setStack(i, stack);
+                var replacedStack = playerInventory.getItem(i);
+                playerInventory.setItem(i, stack);
                 if (!replacedStack.isEmpty())
                     remainingStacks.add(replacedStack);
             }
         }
         for (var stack : remainingStacks) {
-            if (!player.giveItemStack(stack))
-                player.dropStack(stack);
+            if (!player.addItem(stack) && level() instanceof ServerLevel serverLevel)
+                player.spawnAtLocation(serverLevel, stack);
         }
 
         discard();
     }
 
     @Override
-    public boolean canHit() {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        return false;
+    }
+
+    @Override
+    public boolean isPickable() {
         return true;
     }
 
     @Override
-    protected double getGravity() {
+    protected double getDefaultGravity() {
         return 0.04;
     }
 
     private void applyWaterBuoyancy() {
-        Vec3d vec3d = this.getVelocity();
-        this.setVelocity(vec3d.x * 0.99F, vec3d.y + (vec3d.y < 0.06F ? 5.0E-4F : 0.0F), vec3d.z * 0.99F);
+        Vec3 vec3d = this.getDeltaMovement();
+        this.setDeltaMovement(vec3d.x * 0.99F, vec3d.y + (vec3d.y < 0.06F ? 5.0E-4F : 0.0F), vec3d.z * 0.99F);
     }
 
     private void applyLavaBuoyancy() {
-        Vec3d vec3d = this.getVelocity();
-        this.setVelocity(vec3d.x * 0.95F, vec3d.y + (vec3d.y < 0.06F ? 5.0E-4F : 0.0F), vec3d.z * 0.95F);
+        Vec3 vec3d = this.getDeltaMovement();
+        this.setDeltaMovement(vec3d.x * 0.95F, vec3d.y + (vec3d.y < 0.06F ? 5.0E-4F : 0.0F), vec3d.z * 0.95F);
     }
 
     @Override
-    public ActionResult interact(PlayerEntity player, Hand hand) {
-        if (!player.shouldCancelInteraction()) {
-            return super.interact(player, hand);
+    public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+        if (!player.isSecondaryUseActive()) {
+            return super.interact(player, hand, location);
         }
 
-        if ((player instanceof ServerPlayerEntity serverPlayer))
-            serverPlayer.openHandledScreen(this);
+        if ((player instanceof ServerPlayer serverPlayer))
+            serverPlayer.openMenu(this);
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public boolean shouldRenderName() {
-        return super.shouldRenderName() || hasCustomName();
+    public boolean shouldShowName() {
+        return super.shouldShowName() || hasCustomName();
     }
 
     @Override
-    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new GenericContainerScreenHandler(ScreenHandlerType.GENERIC_9X5, syncId, playerInventory, inventory, 5);
+    public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
+        return new ChestMenu(MenuType.GENERIC_9x5, syncId, playerInventory, inventory, 5);
     }
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_OWNERUUID_ID, Optional.empty());
     }
 
     private static final String OWNER_NBT = "Owner";
     private static final String TICKS_EMPTY_NBT = "TicksEmpty";
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
-        if (nbt.contains(OWNER_NBT))
-            ownerUuid = nbt.getUuid(OWNER_NBT);
-        else
-            ownerUuid = null;
-        owner = null;
+    protected void readAdditionalSaveData(ValueInput input) {
+        EntityReference<LivingEntity> owner = EntityReference.readWithOldOwnerConversion(input, "Owner", this.level());
+        if (owner != null) {
+            try {
+                this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner));
+            } catch (Throwable var4) {
+            }
+        } else {
+            this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
+        }
 
-        getOwner();
+        ticksEmpty = input.getInt(TICKS_EMPTY_NBT).orElseThrow();
 
-        ticksEmpty = nbt.getInt(TICKS_EMPTY_NBT);
-
-        Inventories.readNbt(nbt, inventory.heldStacks, getRegistryManager());
+        ContainerHelper.loadAllItems(input, inventory.items);
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
-        if (ownerUuid != null)
-            nbt.putUuid(OWNER_NBT, ownerUuid);
-        nbt.putInt(TICKS_EMPTY_NBT, ticksEmpty);
-        Inventories.writeNbt(nbt, inventory.heldStacks, getRegistryManager());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        EntityReference<LivingEntity> owner = this.getOwnerReference();
+        EntityReference.store(owner, output, "Owner");
+        output.putInt(TICKS_EMPTY_NBT, ticksEmpty);
+        ContainerHelper.saveAllItems(output, inventory.items);
     }
 }
