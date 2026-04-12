@@ -98,7 +98,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
 
         SkullModelBase model = this.modelByType.apply(state.skullType);
         if (state.renderType != null)
-            SkullBlockRenderer.submitSkull(0.0f, poseStack, submitNodeCollector, state.lightCoords, model, state.renderType, state.outlineColor, new ModelFeatureRenderer.CrumblingOverlay(0, poseStack.last()));
+            SkullBlockRenderer.submitSkull(0.0f, poseStack, submitNodeCollector, state.lightCoords, model, state.renderType, state.outlineColor, null);
 
         poseStack.popPose();
         super.submit(state, poseStack, submitNodeCollector, camera);
