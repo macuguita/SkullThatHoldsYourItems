@@ -1,4 +1,4 @@
-package archives.tater.holdingskull.mixin;
+package archives.tater.holdingskull.client.mixin;
 
 import archives.tater.holdingskull.SkullGraveEntity;
 import com.llamalad7.mixinextras.expression.Definition;

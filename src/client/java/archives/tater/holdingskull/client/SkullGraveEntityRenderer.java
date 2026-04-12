@@ -1,5 +1,6 @@
-package archives.tater.holdingskull;
+package archives.tater.holdingskull.client;
 
+import archives.tater.holdingskull.SkullGraveEntity;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;

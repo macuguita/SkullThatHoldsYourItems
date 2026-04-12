@@ -19,7 +19,7 @@
       "archives.tater.holdingskull.HoldingSkull"
     ],
     "client": [
-      "archives.tater.holdingskull.HoldingSkullClient"
+		"archives.tater.holdingskull.client.HoldingSkullClient"
     ]
   },
   "mixins": [

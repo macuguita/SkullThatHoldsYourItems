@@ -1,4 +1,4 @@
-package archives.tater.holdingskull;
+package archives.tater.holdingskull.client;
 
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;

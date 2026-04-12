@@ -1,5 +1,6 @@
-package archives.tater.holdingskull;
+package archives.tater.holdingskull.client;
 
+import archives.tater.holdingskull.HoldingSkull;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 
