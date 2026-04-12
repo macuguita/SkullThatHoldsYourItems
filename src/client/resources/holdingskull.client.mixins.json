@@ -1,10 +1,13 @@
 {
-	"required": true,
-	"package": "archives.tater.holdingskull.mixin.client",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-	],
-	"injectors": {
-		"defaultRequire": 1
-	}
+  "required": true,
+  "package": "archives.tater.holdingskull.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "mixinextras": {
+    "minVersion": "0.5.3"
+  },
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

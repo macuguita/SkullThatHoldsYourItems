@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -59,6 +60,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
     protected SkullGraveEntityRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
         playerSkinRenderCache = ctx.getPlayerSkinRenderCache();
@@ -94,7 +96,8 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
 
         SkullModelBase model = this.modelByType.apply(state.skullType);
-        SkullBlockRenderer.submitSkull(0.0f, poseStack, submitNodeCollector, state.lightCoords, model, state.renderType, state.outlineColor, null);
+        if (state.renderType != null)
+            SkullBlockRenderer.submitSkull(0.0f, poseStack, submitNodeCollector, state.lightCoords, model, state.renderType, state.outlineColor, new ModelFeatureRenderer.CrumblingOverlay(0, poseStack.last()));
 
         poseStack.popPose();
         super.submit(state, poseStack, submitNodeCollector, camera);

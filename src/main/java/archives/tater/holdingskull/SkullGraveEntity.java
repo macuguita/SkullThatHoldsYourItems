@@ -24,10 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.UUID;
 
+@SuppressWarnings("resource")
 public class SkullGraveEntity extends Entity implements MenuProvider, TraceableEntity {
-    private static final UUID EMPTY_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(
             SkullGraveEntity.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE
     );
@@ -199,7 +198,6 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         builder.define(DATA_OWNERUUID_ID, Optional.empty());
     }
 
-    private static final String OWNER_NBT = "Owner";
     private static final String TICKS_EMPTY_NBT = "TicksEmpty";
 
     @Override
@@ -208,7 +206,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         if (owner != null) {
             try {
                 this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner));
-            } catch (Throwable var4) {
+            } catch (Throwable _) {
             }
         } else {
             this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());

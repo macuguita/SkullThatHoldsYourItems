@@ -1,41 +1,41 @@
 {
-	"schemaVersion": 1,
-	"id": "holdingskull",
-	"version": "${version}",
-	"name": "Skull that holds your items",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/holdingskull/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-          "archives.tater.holdingskull.HoldingSkull"
-		],
-		"client": [
-			"archives.tater.holdingskull.HoldingSkullClient"
-		]
-	},
-	"mixins": [
-		"holdingskull.mixins.json",
-		{
-			"config": "holdingskull.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.18.0",
-		"minecraft": "~26.1-",
-		"java": ">=25",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
-	}
+  "schemaVersion": 1,
+  "id": "holdingskull",
+  "version": "${version}",
+  "name": "Skull that holds your items",
+  "description": "This is an example description! Tell everyone what your mod is about!",
+  "authors": [
+    "Me!"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "CC0-1.0",
+  "icon": "assets/holdingskull/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "archives.tater.holdingskull.HoldingSkull"
+    ],
+    "client": [
+      "archives.tater.holdingskull.HoldingSkullClient"
+    ]
+  },
+  "mixins": [
+    "holdingskull.mixins.json",
+    {
+      "config": "holdingskull.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~26.1-",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
 }
