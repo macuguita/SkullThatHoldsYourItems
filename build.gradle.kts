@@ -11,10 +11,12 @@ base {
 }
 
 repositories {
-	// Add repositories here if needed
+	maven { url = uri("https://maven.macuguita.com/releases") }
 }
 
 loom {
+	accessWidenerPath.set(project.file("src/main/resources/holdingskull.classtweaker"))
+
 	splitEnvironmentSourceSets()
 
 	mods {
@@ -32,6 +34,8 @@ dependencies {
 
 	// Fabric API (optional but recommended)
 	implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+	implementation("folk.sisby:kaleido-config:${property("kaleido_version")}")
+	include("folk.sisby:kaleido-config:${property("kaleido_version")}")
 }
 
 tasks.processResources {

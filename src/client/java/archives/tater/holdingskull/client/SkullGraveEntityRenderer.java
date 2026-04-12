@@ -1,5 +1,6 @@
 package archives.tater.holdingskull.client;
 
+import archives.tater.holdingskull.HoldingSkull;
 import archives.tater.holdingskull.SkullGraveEntity;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -56,7 +57,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
     @Override
     public void extractRenderState(SkullGraveEntity entity, SkullGraveEntityRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        state.skullType = entity.getOwner() != null
+        state.skullType = entity.getOwner() != null && (!entity.isUnclaimed() || !HoldingSkull.CONFIG.shouldDecayToSkeleton)
                 ? SkullBlock.Types.PLAYER
                 : SkullBlock.Types.SKELETON;
         state.renderType = resolveSkullRenderType(state.skullType, entity);

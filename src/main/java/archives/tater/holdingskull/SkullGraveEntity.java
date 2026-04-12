@@ -1,19 +1,21 @@
 package archives.tater.holdingskull;
 
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.*;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -25,19 +27,15 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 @SuppressWarnings("resource")
-public class SkullGraveEntity extends Entity implements MenuProvider, TraceableEntity {
+public class SkullGraveEntity extends Entity implements ExtendedMenuProvider<SkullGraveMenu.SkullGraveData>, TraceableEntity {
     protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(
             SkullGraveEntity.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE
     );
-    private final SimpleContainer inventory = new SimpleContainer(127) {
-        @Override
-        public boolean canAddItem(ItemStack stack) {
-            return false;
-        }
-    };
+    protected static final EntityDataAccessor<Integer> DATA_TICKS_UNCLAIMED = SynchedEntityData.defineId(
+            SkullGraveEntity.class, EntityDataSerializers.INT
+    );
+    private final SimpleContainer inventory = new SimpleContainer(127);
     private int ticksEmpty = 0;
-
-    public static final int MAX_EMPTY_TICKS = 20 * 60;
 
     public SkullGraveEntity(EntityType<? extends SkullGraveEntity> type, Level world) {
         super(type, world);
@@ -77,8 +75,16 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         return this.entityData.get(DATA_OWNERUUID_ID).map(EntityReference::getUUID).map(uuid -> level().getPlayerByUUID(uuid)).orElse(null);
     }
 
+    public Integer getTicksUnclaimed() {
+        return this.entityData.get(DATA_TICKS_UNCLAIMED);
+    }
+
     public boolean isOwner(Player player) {
         return player.getUUID().equals(this.entityData.get(DATA_OWNERUUID_ID).map(EntityReference::getUUID).orElse(null));
+    }
+
+    public boolean isUnclaimed() {
+        return getTicksUnclaimed() >= HoldingSkull.CONFIG.maxUnclaimedTicks;
     }
 
     @Override
@@ -105,9 +111,11 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
 
         if (!level().isClientSide() && inventory.isEmpty()) {
             ticksEmpty++;
-            if (ticksEmpty > MAX_EMPTY_TICKS)
+            if (ticksEmpty > HoldingSkull.CONFIG.maxEmptyTicks)
                 discard();
         }
+        if (getTicksUnclaimed() < HoldingSkull.CONFIG.maxUnclaimedTicks)
+            this.entityData.set(DATA_TICKS_UNCLAIMED, getTicksUnclaimed() + 1);
     }
 
     @Override
@@ -187,29 +195,38 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-        return new ChestMenu(MenuType.GENERIC_9x5, syncId, playerInventory, inventory, 5);
+        return new SkullGraveMenu(syncId, playerInventory, inventory,
+                new SkullGraveMenu.SkullGraveData(
+                        Optional.ofNullable(getOwnerReference()).map(EntityReference::getUUID),
+                        isUnclaimed()
+                ));
+    }
+
+    @Override
+    public SkullGraveMenu.SkullGraveData getScreenOpeningData(ServerPlayer player) {
+        return new SkullGraveMenu.SkullGraveData(Optional.ofNullable(getOwnerReference()).map(EntityReference::getUUID), isUnclaimed());
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(DATA_OWNERUUID_ID, Optional.empty());
+        builder.define(DATA_OWNERUUID_ID, Optional.empty())
+                .define(DATA_TICKS_UNCLAIMED, 0);
     }
 
     private static final String TICKS_EMPTY_NBT = "TicksEmpty";
+    private static final String TICKS_UNCLAIMED_NBT = "TicksUnclaimed";
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         EntityReference<LivingEntity> owner = EntityReference.readWithOldOwnerConversion(input, "Owner", this.level());
         if (owner != null) {
-            try {
-                this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner));
-            } catch (Throwable _) {
-            }
+            this.entityData.set(DATA_OWNERUUID_ID, Optional.of(owner));
         } else {
             this.entityData.set(DATA_OWNERUUID_ID, Optional.empty());
         }
 
         ticksEmpty = input.getInt(TICKS_EMPTY_NBT).orElseThrow();
+        this.entityData.set(DATA_TICKS_UNCLAIMED, input.getInt(TICKS_UNCLAIMED_NBT).orElseThrow());
 
         ContainerHelper.loadAllItems(input, inventory.getItems());
     }
@@ -219,6 +236,7 @@ public class SkullGraveEntity extends Entity implements MenuProvider, TraceableE
         EntityReference<LivingEntity> owner = this.getOwnerReference();
         EntityReference.store(owner, output, "Owner");
         output.putInt(TICKS_EMPTY_NBT, ticksEmpty);
+        output.putInt(TICKS_UNCLAIMED_NBT, getTicksUnclaimed());
         ContainerHelper.saveAllItems(output, inventory.getItems());
     }
 }
