@@ -1,6 +1,6 @@
 package archives.tater.holdingskull.mixin;
 
-import archives.tater.holdingskull.SkullGraveEntity;
+import archives.tater.holdingskull.SkullGrave;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -20,6 +20,6 @@ public class LivingEntityMixin {
             at = @At("MIXINEXTRAS:EXPRESSION")
     )
     private boolean allowSkullGravePickup(Object object, Operation<Boolean> original) {
-        return original.call(object) || object instanceof SkullGraveEntity;
+        return original.call(object) || object instanceof SkullGrave;
     }
 }

@@ -25,6 +25,21 @@ loom {
 			sourceSet(sourceSets["client"])
 		}
 	}
+
+	runs {
+		create("clientMacuguita") {
+			client()
+			name = "Minecraft Client macuguita"
+			programArgs.add("--username=macuguita")
+			programArgs.add("--uuid=0e56050b-ee27-478a-a345-d2b384919081")
+		}
+		create("clientLadybrine") {
+			client()
+			name = "Minecraft Client Ladybrine"
+			programArgs.add("--username=Ladybrine")
+			programArgs.add("--uuid=5d66606c-949c-47ce-ba4c-a1b9339ba3c8")
+		}
+	}
 }
 
 dependencies {

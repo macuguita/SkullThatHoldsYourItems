@@ -34,10 +34,10 @@ public class HoldingSkull implements ModInitializer {
         public boolean opsCanBypassUnclaimedSkulls = true;
     }
 
-    public static final EntityType<SkullGraveEntity> SKULL_GRAVE = Registry.register(
+    public static final EntityType<SkullGrave> SKULL_GRAVE = Registry.register(
             BuiltInRegistries.ENTITY_TYPE,
             id("skull_grave"),
-            EntityType.Builder.<SkullGraveEntity>of(SkullGraveEntity::new, MobCategory.MISC)
+            EntityType.Builder.<SkullGrave>of(SkullGrave::new, MobCategory.MISC)
                     .fireImmune()
                     .sized(0.5F, 0.5F)
                     .eyeHeight(0.2125F)

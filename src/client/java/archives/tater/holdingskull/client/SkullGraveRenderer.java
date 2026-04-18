@@ -1,7 +1,7 @@
 package archives.tater.holdingskull.client;
 
 import archives.tater.holdingskull.HoldingSkull;
-import archives.tater.holdingskull.SkullGraveEntity;
+import archives.tater.holdingskull.SkullGrave;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -26,7 +26,7 @@ import net.minecraft.world.level.block.SkullBlock;
 import java.util.Map;
 import java.util.function.Function;
 
-public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, SkullGraveEntityRenderState> {
+public class SkullGraveRenderer extends EntityRenderer<SkullGrave, SkullGraveRenderState> {
     private final Function<SkullBlock.Type, SkullModelBase> modelByType;
     private static final Map<SkullBlock.Type, Identifier> SKIN_BY_TYPE = Util.make(Maps.newHashMap(), map -> {
         map.put(SkullBlock.Types.SKELETON, Identifier.withDefaultNamespace("textures/entity/skeleton/skeleton.png"));
@@ -40,7 +40,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
     private final PlayerSkinRenderCache playerSkinRenderCache;
 
     @SuppressWarnings("DataFlowIssue")
-    protected SkullGraveEntityRenderer(EntityRendererProvider.Context ctx) {
+    protected SkullGraveRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
         playerSkinRenderCache = ctx.getPlayerSkinRenderCache();
         EntityModelSet modelSet = ctx.getModelSet();
@@ -50,12 +50,12 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
     }
 
     @Override
-    public SkullGraveEntityRenderState createRenderState() {
-        return new SkullGraveEntityRenderState();
+    public SkullGraveRenderState createRenderState() {
+        return new SkullGraveRenderState();
     }
 
     @Override
-    public void extractRenderState(SkullGraveEntity entity, SkullGraveEntityRenderState state, float partialTicks) {
+    public void extractRenderState(SkullGrave entity, SkullGraveRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
         state.skullType = entity.getOwner() != null && (!entity.isUnclaimed() || !HoldingSkull.CONFIG.shouldDecayToSkeleton)
                 ? SkullBlock.Types.PLAYER
@@ -64,7 +64,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
     }
 
     @Override
-    public void submit(SkullGraveEntityRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+    public void submit(SkullGraveRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         poseStack.pushPose();
 
         var animationProgress = state.ageInTicks;
@@ -82,7 +82,7 @@ public class SkullGraveEntityRenderer extends EntityRenderer<SkullGraveEntity, S
         super.submit(state, poseStack, submitNodeCollector, camera);
     }
 
-    private RenderType resolveSkullRenderType(final SkullBlock.Type type, final SkullGraveEntity entity) {
+    private RenderType resolveSkullRenderType(final SkullBlock.Type type, final SkullGrave entity) {
         if (type == SkullBlock.Types.PLAYER) {
             Player owner = entity.getOwner();
             if (owner != null) {

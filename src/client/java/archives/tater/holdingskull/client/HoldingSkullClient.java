@@ -10,7 +10,7 @@ public class HoldingSkullClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         // This entrypoint is suitable for setting up client-specific logic, such as rendering.
-        EntityRenderers.register(HoldingSkull.SKULL_GRAVE, SkullGraveEntityRenderer::new);
+        EntityRenderers.register(HoldingSkull.SKULL_GRAVE, SkullGraveRenderer::new);
         MenuScreens.register(HoldingSkull.SKULL_GRAVE_MENU, ContainerScreen::new);
     }
 }

@@ -1,6 +1,6 @@
 package archives.tater.holdingskull.mixin;
 
-import archives.tater.holdingskull.SkullGraveEntity;
+import archives.tater.holdingskull.SkullGrave;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.mojang.authlib.GameProfile;
@@ -27,6 +27,6 @@ public abstract class ServerPlayerMixin extends Player {
             at = @At("MIXINEXTRAS:EXPRESSION")
     )
     private void createGrave(DamageSource source, CallbackInfo ci) {
-        level().addFreshEntity(new SkullGraveEntity(level(), this));
+        level().addFreshEntity(new SkullGrave(level(), this));
     }
 }
