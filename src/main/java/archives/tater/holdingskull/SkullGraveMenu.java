@@ -6,9 +6,12 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -16,10 +19,12 @@ import java.util.UUID;
 public class SkullGraveMenu extends ChestMenu {
 
     private final SkullGraveData data;
+    private final Container skullInventory;
 
-    public SkullGraveMenu(int containerId, Inventory inventory, Container skull, SkullGraveData data) {
-        super(MenuType.GENERIC_9x5, containerId, inventory, skull, 5);
+    public SkullGraveMenu(int containerId, Inventory inventory, Container skullInventory, SkullGraveData data) {
+        super(MenuType.GENERIC_9x5, containerId, inventory, skullInventory, 5);
         this.data = data;
+        this.skullInventory = skullInventory;
     }
 
     public SkullGraveMenu(int containerId, Inventory inventory, SkullGraveData owner) {
@@ -48,8 +53,31 @@ public class SkullGraveMenu extends ChestMenu {
         return HoldingSkull.SKULL_GRAVE_MENU;
     }
 
-    public record SkullGraveData(Optional<UUID> owner, boolean isUnclaimed) {
+    private Entity getSkullGrave(Level level) {
+        return level.getEntity(data.skullId);
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        var skullGrave = getSkullGrave(player.level());
+        if (skullGrave != null) {
+            return skullGrave.isAlive()
+                    && this.skullInventory.stillValid(player)
+                    && player.isWithinEntityInteractionRange(skullGrave, 4.0);
+        }
+        return false;
+    }
+
+    @Override
+    public void removed(final Player player) {
+        super.removed(player);
+        this.skullInventory.stopOpen(player);
+    }
+
+    public record SkullGraveData(Integer skullId, Optional<UUID> owner, boolean isUnclaimed) {
         public static final StreamCodec<ByteBuf, SkullGraveData> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.INT,
+                SkullGraveData::skullId,
                 UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs::optional),
                 SkullGraveData::owner,
                 ByteBufCodecs.BOOL,

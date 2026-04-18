@@ -197,6 +197,7 @@ public class SkullGraveEntity extends Entity implements ExtendedMenuProvider<Sku
     public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new SkullGraveMenu(syncId, playerInventory, inventory,
                 new SkullGraveMenu.SkullGraveData(
+                        this.getId(),
                         Optional.ofNullable(getOwnerReference()).map(EntityReference::getUUID),
                         isUnclaimed()
                 ));
@@ -204,7 +205,7 @@ public class SkullGraveEntity extends Entity implements ExtendedMenuProvider<Sku
 
     @Override
     public SkullGraveMenu.SkullGraveData getScreenOpeningData(ServerPlayer player) {
-        return new SkullGraveMenu.SkullGraveData(Optional.ofNullable(getOwnerReference()).map(EntityReference::getUUID), isUnclaimed());
+        return new SkullGraveMenu.SkullGraveData(this.getId(), Optional.ofNullable(getOwnerReference()).map(EntityReference::getUUID), isUnclaimed());
     }
 
     @Override
