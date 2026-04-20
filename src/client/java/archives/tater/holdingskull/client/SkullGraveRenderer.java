@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.SkullBlock;
@@ -64,6 +63,7 @@ public class SkullGraveRenderer extends EntityRenderer<SkullGrave, SkullGraveRen
 
         SkullModelBase model = this.modelByType.apply(state.skullType);
         if (state.renderType != null)
+            //noinspection DataFlowIssue
             SkullBlockRenderer.submitSkull(0.0f, poseStack, submitNodeCollector, state.lightCoords, model, state.renderType, state.outlineColor, null);
 
         poseStack.popPose();

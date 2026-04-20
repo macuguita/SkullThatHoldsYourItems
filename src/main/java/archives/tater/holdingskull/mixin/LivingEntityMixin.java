@@ -19,7 +19,7 @@ public class LivingEntityMixin {
             method = "take",
             at = @At("MIXINEXTRAS:EXPRESSION")
     )
-    private boolean allowSkullGravePickup(Object object, Operation<Boolean> original) {
+    private boolean holdingskull$allowSkullGravePickup(Object object, Operation<Boolean> original) {
         return original.call(object) || object instanceof SkullGrave;
     }
 }

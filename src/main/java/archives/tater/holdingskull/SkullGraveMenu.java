@@ -1,5 +1,6 @@
 package archives.tater.holdingskull;
 
+import archives.tater.holdingskull.compat.CompatHelper;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,13 +24,16 @@ public class SkullGraveMenu extends ChestMenu {
     private final Container skullInventory;
 
     public SkullGraveMenu(int containerId, Inventory inventory, Container skullInventory, SkullGraveData data) {
-        super(MenuType.GENERIC_9x5, containerId, inventory, skullInventory, 5);
+        var menuType = CompatHelper.isTrinketsLoaded() ? MenuType.GENERIC_9x6 : MenuType.GENERIC_9x5;
+        var rows = CompatHelper.isTrinketsLoaded() ? 6 : 5;
+        super(menuType, containerId, inventory, skullInventory, rows);
         this.data = data;
         this.skullInventory = skullInventory;
     }
 
     public SkullGraveMenu(int containerId, Inventory inventory, SkullGraveData owner) {
-        this(containerId, inventory, new SimpleContainer(45), owner);
+        var invSize = CompatHelper.isTrinketsLoaded() ? 6 * 9 : 5 * 9;
+        this(containerId, inventory, new SimpleContainer(invSize), owner);
     }
 
     public Optional<UUID> getOwner() {
@@ -53,6 +58,7 @@ public class SkullGraveMenu extends ChestMenu {
         return HoldingSkull.SKULL_GRAVE_MENU;
     }
 
+    @Nullable
     private Entity getSkullGrave(Level level) {
         return level.getEntity(data.skullId);
     }
