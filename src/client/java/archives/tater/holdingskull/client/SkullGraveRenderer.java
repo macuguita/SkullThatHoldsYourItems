@@ -2,7 +2,6 @@ package archives.tater.holdingskull.client;
 
 import archives.tater.holdingskull.HoldingSkull;
 import archives.tater.holdingskull.SkullGrave;
-import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -15,28 +14,17 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.SkullBlock;
 
-import java.util.Map;
 import java.util.function.Function;
 
 public class SkullGraveRenderer extends EntityRenderer<SkullGrave, SkullGraveRenderState> {
     private final Function<SkullBlock.Type, SkullModelBase> modelByType;
-    private static final Map<SkullBlock.Type, Identifier> SKIN_BY_TYPE = Util.make(Maps.newHashMap(), map -> {
-        map.put(SkullBlock.Types.SKELETON, Identifier.withDefaultNamespace("textures/entity/skeleton/skeleton.png"));
-        map.put(SkullBlock.Types.WITHER_SKELETON, Identifier.withDefaultNamespace("textures/entity/skeleton/wither_skeleton.png"));
-        map.put(SkullBlock.Types.ZOMBIE, Identifier.withDefaultNamespace("textures/entity/zombie/zombie.png"));
-        map.put(SkullBlock.Types.CREEPER, Identifier.withDefaultNamespace("textures/entity/creeper/creeper.png"));
-        map.put(SkullBlock.Types.DRAGON, Identifier.withDefaultNamespace("textures/entity/enderdragon/dragon.png"));
-        map.put(SkullBlock.Types.PIGLIN, Identifier.withDefaultNamespace("textures/entity/piglin/piglin.png"));
-        map.put(SkullBlock.Types.PLAYER, DefaultPlayerSkin.getDefaultTexture());
-    });
     private final PlayerSkinRenderCache playerSkinRenderCache;
 
     @SuppressWarnings("DataFlowIssue")
@@ -91,6 +79,6 @@ public class SkullGraveRenderer extends EntityRenderer<SkullGrave, SkullGraveRen
             }
         }
 
-        return RenderTypes.entityCutoutZOffset(SKIN_BY_TYPE.get(type));
+        return RenderTypes.entityCutoutZOffset(SkullBlockRenderer.SKIN_BY_TYPE.get(type));
     }
 }

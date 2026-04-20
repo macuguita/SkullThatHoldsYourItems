@@ -1,4 +1,6 @@
 classTweaker v1 official
 
+accessible field net/minecraft/client/renderer/blockentity/SkullBlockRenderer SKIN_BY_TYPE Ljava/util/Map;
+
 extendable method net/minecraft/world/inventory/ChestMenu addChestGrid (Lnet/minecraft/world/Container;II)V
 extendable method net/minecraft/world/inventory/ChestMenu <init> (Lnet/minecraft/world/inventory/MenuType;ILnet/minecraft/world/entity/player/Inventory;I)V
