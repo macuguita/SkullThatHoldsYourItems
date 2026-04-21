@@ -14,19 +14,23 @@ public final class Trinkets {
 
     public static void addTrinketsToSkullGrave(SimpleContainer inventory, Player player) {
         var trinkets = TrinketsApi.getAttachment(player);
+        int trinketSlotIndex = player.getInventory().getContainerSize();
+
         for (Tuple<TrinketSlotAccess, ItemStack> slotReferenceItemStackPair : trinkets.getAllEquipped()) {
             var slotAccess = slotReferenceItemStackPair.getA();
             var stack = slotReferenceItemStackPair.getB();
 
-            if (stack.isEmpty()) {
-                continue;
-            }
+            if (stack.isEmpty()) continue;
 
-            // if we are running this, keep inventory is off because if it was the grave wouldn't spawn
             TrinketDropRule dropRule = TrinketsApi.getDropRule(stack, slotAccess, player, false);
 
             if (dropRule == TrinketDropRule.DROP) {
-                inventory.addItem(stack);
+                if (trinketSlotIndex < inventory.getContainerSize()) {
+                    inventory.setItem(++trinketSlotIndex, stack);
+                } else {
+                    // Fallback if container is somehow too small
+                    inventory.addItem(stack);
+                }
                 slotAccess.set(ItemStack.EMPTY);
             }
         }

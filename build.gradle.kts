@@ -60,6 +60,10 @@ dependencies {
     include("folk.sisby:kaleido-config:${property("kaleido_version")}")
 
     implementation("eu.pb4:trinkets:${property("trinkets_version")}")
+    implementation("com.macuguita:gbackpacks:26.1.1-beta+9") {
+        isTransitive = false
+    }
+    implementation("com.macuguita:macu_lib-fabric:2.0.2+26.1")
 }
 
 tasks.processResources {
