@@ -38,8 +38,6 @@ public abstract class PlayerMixin extends Avatar implements ContainerUser {
         if (keepInv) return;
         this.destroyVanishingCursedItems();
         level().addFreshEntity(new SkullGrave(level, (Player) (Object) this));
-        if (CompatHelper.isTrinketsLoaded())
-            Trinkets.clearTrinketsInventory(this);
         ci.cancel();
     }
 }
